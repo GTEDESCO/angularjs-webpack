@@ -1,0 +1,46 @@
+(function () {
+    'use strict';
+
+    angular.module('atsWeb', [
+        'angular-jwt',
+        'angular-google-analytics',
+        'ngAnimate',
+        'ngSanitize',
+        'ngMessages',
+        'ui.select',
+        'ui.mask',
+        'ngAria',
+        'ui.router',
+        'ui.router.state.events',
+        'permission', 
+        'permission.ui',
+        'ui.bootstrap', 
+        'toastr',
+        'dndLists',
+        'ui.grid', 
+        'ui.grid.grouping',
+        'ui.grid.cellNav', 
+        'ui.grid.edit',
+        'ui.grid.resizeColumns', 
+        'ui.grid.pinning',
+        'ui.grid.saveState', 
+        'ui.grid.selection',
+        'ui.grid.moveColumns', 
+        'ui.grid.exporter',
+        'ui.grid.importer', 
+        'ui.grid.pagination',
+        'ui.grid.expandable',
+        'ui.bootstrap.tooltip', 
+        'uiSwitch', 
+        'ngMap',
+        'daterangepicker', 
+        'mwl.confirm',
+        'ui.utils.masks', 
+        'chart.js',
+        'toggle-switch',
+        'nvd3',
+        'module1',
+        'otherModule'
+    ]);
+    
+})();
