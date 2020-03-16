@@ -1,4 +1,3 @@
-
 const environment = require('./bootstrap');
 const path = require('path');
 const webpack = require('webpack');
@@ -22,7 +21,8 @@ const entryFiles = [
   './src/app/config.js',
   './.tmp/templateCache.js',
 ])
-.concat(glob.sync('./src/app/**/*.js'));
+.concat(glob.sync('./src/app/**/*.js'))
+.concat(glob.sync('./src/app/**/*.html'));
 
 var filelist = 'angular.module("atsWeb").run(["$templateCache",function($templateCache){"use strict";';
 
@@ -215,7 +215,7 @@ module.exports = {
             loader: 'html-loader',
             options: {
               minimize: false,
-              collapseWhitespace: false
+              attrs: false
             }
           }
         ]
