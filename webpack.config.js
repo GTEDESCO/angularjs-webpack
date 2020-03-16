@@ -8,53 +8,8 @@ const CopyPlugin = require('copy-webpack-plugin');
 const glob = require('glob');
 const fs = require("fs");
 const MomentLocalesPlugin = require('moment-locales-webpack-plugin');
-
-const entryFiles = [
-  './src/app/vendor.js',
-  './.tmp/environment.js'
-]
-.concat(glob.sync('./src/app/entities/**/*.state.js'))
-.concat([
-  './src/app/app.module.js', 
-  './src/app/app.constants.js', 
-  './src/app/app.state.js', 
-  './src/app/config.js',
-  './.tmp/templateCache.js',
-])
-.concat(glob.sync('./src/app/**/*.js'))
-.concat(glob.sync('./src/app/**/*.html'));
-
-var filelist = 'angular.module("atsWeb").run(["$templateCache",function($templateCache){"use strict";';
-
-var files = glob.sync("./src/app/**/*.html", {});
-
-for (var filename of files) {
-  if (filename.substr(-4) === 'html') {
-    var source = fs.readFileSync(filename);
-    source = source.toString();
-    source = source.replace(/\r?\n|\r/g, "");
-    source = source.replace(/\\/g, "\\\\");
-    source = source.replace(/'/g, "\\'");
-    source = source.replace(/"/g, "\\\"");
-    filename = filename.substring('./src/'.length, filename.length);
-    filelist += (`$templateCache.put("${ filename }", "${ source }" ); \n`);
-  }
-}
-
-filelist += '}]);';
-
-fs.mkdirSync("./.tmp", { recursive: true })
-
-fs.writeFileSync('./.tmp/templateCache.js', filelist);
-
-var constants = 'angular.module("atsWeb.environment", [])';
-Object.keys(environment).forEach(key => {
-  constants += `\n  .constant("${key}", ${JSON.stringify(environment[key], null, 0)})`;
-});
-constants += `\n  .constant("systemVersion", ${JSON.stringify(process.env.npm_package_version, null, 0)})`;
-constants = `(function () { \n ${constants}; \n})();\n`;
-
-fs.writeFileSync('./.tmp/environment.js', constants);
+const InjectPlugin = require('webpack-inject-plugin').default;
+const ENTRY_ORDER = require('webpack-inject-plugin').ENTRY_ORDER;
 
 const plugins = [
   new webpack.ProgressPlugin(),
@@ -68,7 +23,7 @@ const plugins = [
     inject: 'body',
     hash: false,
     chunksSortMode: function (chunk1, chunk2) {
-      var orders = ['vendor', 'app'];
+      var orders = ['libs', 'modules', 'app', 'scripts', 'html'];
       var order1 = orders.indexOf(chunk1.names[0]);
       var order2 = orders.indexOf(chunk2.names[0]);
 
@@ -82,6 +37,46 @@ const plugins = [
   ]),
   new MomentLocalesPlugin({
     localesToKeep: ['pt-BR'],
+  }),
+  new InjectPlugin(function() {
+    var filelist = 'angular.module("atsWeb").run(["$templateCache",function($templateCache){"use strict";';
+
+    var files = glob.sync("./src/app/**/*.html", {});
+
+    for (var filename of files) {
+      if (filename.substr(-4) === 'html') {
+        var source = fs.readFileSync(filename);
+        source = source.toString();
+        source = source.replace(/\r?\n|\r/g, "");
+        source = source.replace(/\\/g, "\\\\");
+        source = source.replace(/'/g, "\\'");
+        source = source.replace(/"/g, "\\\"");
+        filename = filename.substring('./src/'.length, filename.length);
+        filelist += (`$templateCache.put("${ filename }", "${ source }" ); \n`);
+      }
+    }
+
+    filelist += '}]);';
+
+    return filelist;
+  }, 
+  {
+    entryName: 'scripts',
+    entryOrder: ENTRY_ORDER.Last
+  }),
+  new InjectPlugin(function() {
+    var constants = 'angular.module("atsWeb.environment", [])';
+    Object.keys(environment).forEach(key => {
+      constants += `\n  .constant("${key}", ${JSON.stringify(environment[key], null, 0)})`;
+    });
+    constants += `\n  .constant("systemVersion", ${JSON.stringify(process.env.npm_package_version, null, 0)})`;
+    constants = `(function () { \n ${constants}; \n})();\n`;
+
+    return constants;
+  }, 
+  {
+    entryName: 'libs',
+    entryOrder: ENTRY_ORDER.Last
   }),
 ];
 
@@ -122,7 +117,25 @@ module.exports = {
     }
   },
   entry: {
-    app: entryFiles.filter((item, index) => entryFiles.indexOf(item) === index),
+    libs: './src/app/vendor.js',
+    modules: glob.sync('./src/app/entities/**/*.state.js'),
+    app: [
+      './src/app/app.module.js', 
+      './src/app/app.constants.js', 
+      './src/app/app.state.js', 
+      './src/app/config.js',
+    ],
+    scripts: glob.sync('./src/app/**/*.js', {
+      ignore: [
+        './src/app/vendor.js',
+        './src/app/environment.js',
+        './src/app/app.module.js', 
+        './src/app/app.constants.js', 
+        './src/app/app.state.js', 
+        './src/app/config.js'
+      ].concat(glob.sync('./src/app/entities/**/*.state.js'))
+    }),
+    html: glob.sync('./src/app/**/*.html')
   },
   output: {
     filename: '[name].bundle-[hash]-[id].js',
