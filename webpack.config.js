@@ -6,7 +6,6 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const glob = require('glob');
-const fs = require("fs");
 const MomentLocalesPlugin = require('moment-locales-webpack-plugin');
 const InjectPlugin = require('webpack-inject-plugin').default;
 const ENTRY_ORDER = require('webpack-inject-plugin').ENTRY_ORDER;
@@ -23,7 +22,7 @@ const plugins = [
     inject: 'body',
     hash: false,
     chunksSortMode: function (chunk1, chunk2) {
-      var orders = ['libs', 'modules', 'app', 'scripts', 'html'];
+      var orders = ['libs', 'modules', 'app', 'scripts'];
       var order1 = orders.indexOf(chunk1.names[0]);
       var order2 = orders.indexOf(chunk2.names[0]);
 
@@ -37,32 +36,6 @@ const plugins = [
   ]),
   new MomentLocalesPlugin({
     localesToKeep: ['pt-BR'],
-  }),
-  new InjectPlugin(function() {
-    var filelist = 'angular.module("atsWeb").run(["$templateCache",function($templateCache){"use strict";';
-
-    var files = glob.sync("./src/app/**/*.html", {});
-
-    for (var filename of files) {
-      if (filename.substr(-4) === 'html') {
-        var source = fs.readFileSync(filename);
-        source = source.toString();
-        source = source.replace(/\r?\n|\r/g, "");
-        source = source.replace(/\\/g, "\\\\");
-        source = source.replace(/'/g, "\\'");
-        source = source.replace(/"/g, "\\\"");
-        filename = filename.substring('./src/'.length, filename.length);
-        filelist += (`$templateCache.put("${ filename }", "${ source }" ); \n`);
-      }
-    }
-
-    filelist += '}]);';
-
-    return filelist;
-  }, 
-  {
-    entryName: 'scripts',
-    entryOrder: ENTRY_ORDER.Last
   }),
   new InjectPlugin(function() {
     var constants = 'angular.module("atsWeb.environment", [])';
@@ -80,13 +53,13 @@ const plugins = [
   }),
 ];
 
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'staging') {
   plugins.push(
     new webpack.HotModuleReplacementPlugin()
   );
 }
 
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {
   plugins.push(
     new webpack.LoaderOptionsPlugin({
       minimize: true,
@@ -96,13 +69,13 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 module.exports = {
-  mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
+  mode: process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging' ? 'production' : 'development',
   cache: true,
   context: __dirname,
   performance: {
     hints: false
   },
-  devtool: process.env.NODE_ENV === 'production' ? 'source-map' : 'inline-source-map',
+  devtool: process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging' ? 'source-map' : 'inline-source-map',
   devServer: {
     contentBase: path.resolve(__dirname, 'build'),
     compress: true,
@@ -111,6 +84,7 @@ module.exports = {
     quiet: false,
     port: 4000,
     historyApiFallback: true,
+    open: true,
     stats: {
       chunks: false,
       chunkModules: false
@@ -135,7 +109,6 @@ module.exports = {
         './src/app/config.js'
       ].concat(glob.sync('./src/app/entities/**/*.state.js'))
     }),
-    html: glob.sync('./src/app/**/*.html')
   },
   output: {
     filename: '[name].bundle-[hash]-[id].js',
@@ -154,8 +127,8 @@ module.exports = {
         }
       }
     },
-    namedModules: process.env.NODE_ENV !== 'production',
-    minimize: process.env.NODE_ENV === 'production',
+    namedModules: process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'staging',
+    minimize: process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging',
     minimizer: [new TerserPlugin()],
   },
   module: {
