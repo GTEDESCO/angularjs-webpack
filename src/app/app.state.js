@@ -1,10 +1,14 @@
 (function() {
   'use strict';
 
-  angular.module('atsWeb')
+  angular.module('myApp')
     .config(routeConfig);
 
-  function routeConfig($stateProvider) {
+  routeConfig.$inject = ['$stateProvider', '$urlRouterProvider'];
+
+  function routeConfig($stateProvider, $urlRouterProvider) {
+    $urlRouterProvider.otherwise('/index');
+
     $stateProvider
       .state('index', {
           url: '/index',  

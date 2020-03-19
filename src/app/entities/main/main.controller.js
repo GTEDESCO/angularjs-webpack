@@ -1,6 +1,6 @@
 (function () {
   'use strict';
 
-  angular.module('atsWeb')
+  angular.module('myApp')
     .controller('MainController', ["$scope", function MainController($scope) {}]);
 })();
