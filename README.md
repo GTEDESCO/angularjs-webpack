@@ -2,7 +2,7 @@
 
 Use o [git](https://git-scm.com/) para clonar o repositório
 
-Entre na pasta do projeto e use o gerenciador de pacotes [NPM](https://nodejs.org/en/) (Node Package Manager)
+Entre na pasta do projeto e execute os comandos abaixo:
 
 ```bash
 npm install # npm
