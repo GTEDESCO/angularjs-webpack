@@ -7,7 +7,7 @@
   function routeConfig($stateProvider) {
     $stateProvider
       .state('index', {
-          url: '/',  
+          url: '/index',  
           template: require("./entities/main/main.html"),
           controller: "MainController",
           controllerAs: "$ctrl"
