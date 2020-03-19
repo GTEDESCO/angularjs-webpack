@@ -30,19 +30,16 @@ const plugins = [
     }
   }),
   new CopyPlugin([
-    { from: 'src/assets/images', to: 'assets/images' },
-    { from: 'src/assets/templatecsv', to: 'assets/templatecsv' },
-    { from: 'src/favicon.ico' },
+    { from: 'src/assets', to: 'assets' },
   ]),
   new MomentLocalesPlugin({
     localesToKeep: ['pt-BR'],
   }),
   new InjectPlugin(function() {
-    var constants = 'angular.module("atsWeb.environment", [])';
+    var constants = 'angular.module("myApp.environment", [])';
     Object.keys(environment).forEach(key => {
       constants += `\n  .constant("${key}", ${JSON.stringify(environment[key], null, 0)})`;
     });
-    constants += `\n  .constant("systemVersion", ${JSON.stringify(process.env.npm_package_version, null, 0)})`;
     constants = `(function () { \n ${constants}; \n})();\n`;
 
     return constants;
@@ -53,13 +50,13 @@ const plugins = [
   }),
 ];
 
-if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'staging') {
+if (process.env.NODE_ENV !== 'production') {
   plugins.push(
     new webpack.HotModuleReplacementPlugin()
   );
 }
 
-if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {
+if (process.env.NODE_ENV === 'production') {
   plugins.push(
     new webpack.LoaderOptionsPlugin({
       minimize: true,
@@ -69,13 +66,13 @@ if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging')
 }
 
 module.exports = {
-  mode: process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging' ? 'production' : 'development',
+  mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
   cache: true,
   context: __dirname,
   performance: {
     hints: false
   },
-  devtool: process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging' ? 'source-map' : 'inline-source-map',
+  devtool: process.env.NODE_ENV === 'production' ? 'source-map' : 'inline-source-map',
   devServer: {
     contentBase: path.resolve(__dirname, 'build'),
     compress: true,
@@ -95,19 +92,14 @@ module.exports = {
     modules: glob.sync('./src/app/entities/**/*.state.js'),
     app: [
       './src/app/app.module.js', 
-      './src/app/app.constants.js', 
       './src/app/app.state.js', 
-      './src/app/config.js',
     ],
     scripts: glob.sync('./src/app/**/*.js', {
       ignore: [
         './src/app/vendor.js',
-        './src/app/environment.js',
         './src/app/app.module.js', 
-        './src/app/app.constants.js', 
         './src/app/app.state.js', 
-        './src/app/config.js'
-      ].concat(glob.sync('./src/app/entities/**/*.state.js'))
+      ]
     }),
   },
   output: {
@@ -127,8 +119,8 @@ module.exports = {
         }
       }
     },
-    namedModules: process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'staging',
-    minimize: process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging',
+    namedModules: process.env.NODE_ENV !== 'production',
+    minimize: process.env.NODE_ENV === 'production',
     minimizer: [new TerserPlugin()],
   },
   module: {
@@ -161,15 +153,6 @@ module.exports = {
           {
             loader: 'expose-loader',
             options: '_'
-          },
-        ]
-      },
-      {
-        test: require.resolve('papaparse'),
-        use: [
-          {
-            loader: 'expose-loader',
-            options: 'Papa'
           },
         ]
       },
