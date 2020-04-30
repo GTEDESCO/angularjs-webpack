@@ -44,7 +44,7 @@
     "bootstrap": "^3.3.7",
     "cross-env": "^7.0.2",
     "dotenv": "^8.2.0",
-    "jquery": "~2.1.4",
+    "jquery": "~3.5.0",
     "lodash": "^4.17.15",
     "moment": "^2.24.0"
   }
